@@ -1,4 +1,4 @@
-# flashmaster
+# FlashMaster
 
 A new Flutter project.
 

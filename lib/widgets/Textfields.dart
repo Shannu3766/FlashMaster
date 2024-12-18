@@ -23,6 +23,7 @@ class QuestionTextField extends StatelessWidget {
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
           ),
+          label: Text(hintText!),
         ),
         initialValue: initialValue,
         validator: validator,
