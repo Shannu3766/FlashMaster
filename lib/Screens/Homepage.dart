@@ -17,6 +17,27 @@ class _HomepageState extends State<Homepage> with WidgetsBindingObserver {
   final db = FlashCardDatabase.instance;
   GlobalKey<FormState> formkey = GlobalKey<FormState>();
   late Future<List<Flashcard>> _cardsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this); // Add observer for lifecycle
+    loadcards();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this); // Remove observer
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      loadcards(); // Refresh data on returning to app
+    }
+  }
+
   void saveflashcard() async {
     final isValid = formkey.currentState!.validate();
     if (!isValid) {
@@ -28,7 +49,6 @@ class _HomepageState extends State<Homepage> with WidgetsBindingObserver {
       int newId = (maxId ?? 0) + 1;
       await db
           .insertCard(Flashcard(id: newId, Question: question, Answer: answer));
-      print("success");
       setState(() {
         loadcards();
       });
@@ -47,153 +67,175 @@ class _HomepageState extends State<Homepage> with WidgetsBindingObserver {
 
   void addflashcard() {
     showModalBottomSheet(
-        context: context,
-        builder: (context) {
-          return Center(
-            child: Form(
-                key: formkey,
-                child: Column(
-                  // mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    QuestionTextField(
-                      hintText: "Question",
-                      onSaved: (value) {
-                        question = value!;
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Please enter the question";
-                        }
-                        return null;
-                      },
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              top: 16,
+              left: 16,
+              right: 16),
+          child: Form(
+            key: formkey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                QuestionTextField(
+                  hintText: "Enter the question",
+                  onSaved: (value) {
+                    question = value!;
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please enter the question";
+                    }
+                    return null;
+                  },
+                ),
+                QuestionTextField(
+                  hintText: "Enter the answer",
+                  onSaved: (value) {
+                    answer = value!;
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please enter the answer";
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 12, horizontal: 20),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    QuestionTextField(
-                      hintText: "Answer",
-                      onSaved: (value) {
-                        answer = value!;
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Please enter the Answer";
-                        }
-                        return null;
-                      },
-                    ),
-                    ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          elevation: 3,
-                          iconColor: Colors.white,
-                          backgroundColor:
-                              const Color.fromARGB(255, 18, 134, 0),
-                          // textStyle: TextStyle(color: Colors.white),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5)),
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 30),
-                        ),
-                        onPressed: saveflashcard,
-                        label: const Text(
-                          "Save",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        icon: Icon(Icons.save))
-                  ],
-                )),
-          );
-        });
+                  ),
+                  onPressed: saveflashcard,
+                  icon: const Icon(Icons.save),
+                  label: const Text(
+                    "Save",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void loadcards() {
     setState(() {
       _cardsFuture = db.getCards();
     });
-    // _cardsFuture = db.getCards();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    loadcards();
-  }
-
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    WidgetsBinding.instance.removeObserver(this); // Remove the observer
-    super.dispose();
-    // super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      loadcards(); // Refresh data on returning to app
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("FlashMaster"),
-        actions: [
-          IconButton(
-              onPressed: () {
-                addflashcard();
-              },
-              icon: const Icon(Icons.add))
-        ],
+        title: const Text(
+          "FlashMaster",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blueAccent, Colors.cyan],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        elevation: 4,
       ),
       body: Center(
-        child: Container(
-          child: FutureBuilder<List<Flashcard>>(
-              future: _cardsFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator();
-                }
-                if (snapshot.hasError) {
-                  print(snapshot.error);
-                  print(
-                      ".........................................................");
-                  return const Text(
-                      "Something went wrong...............................");
-                }
-                if (!snapshot.hasData || snapshot.data!.length == 0) {
-                  return const Text("No data found");
-                }
-                return ListView.builder(
-                    // separatorBuilder: (context, index) => const Divider(),
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      return Card(
-                        margin: const EdgeInsets.all(10),
-                        elevation: 4,
-                        child: ListTile(
-                          trailing: IconButton(
-                            onPressed: () {
-                              db.deleteCard(snapshot.data![index].id);
-                              setState(() {
-                                loadcards();
-                              });
-                            },
-                            icon: const Icon(Icons.delete),
-                            color: Colors.red,
-                          ),
-                          title: Text(snapshot.data![index].Question),
-                          subtitle: Text(snapshot.data![index].Answer),
-                          onTap: () {
-                            Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => Flashcardscreen(
-                                      id: snapshot.data![index].id,
-                                    )));
-                          },
-                        ),
-                      );
-                    });
-              }),
+        child: FutureBuilder<List<Flashcard>>(
+          future: _cardsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const CircularProgressIndicator();
+            }
+            if (snapshot.hasError) {
+              return const Text("Something went wrong. Please try again.");
+            }
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.library_books, size: 80, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "No flashcards available!",
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Tap the + button to add your first flashcard.",
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ],
+              );
+            }
+            return ListView.builder(
+              itemCount: snapshot.data!.length,
+              itemBuilder: (context, index) {
+                final card = snapshot.data![index];
+                return Card(
+                  margin:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 4,
+                  child: ListTile(
+                    title: Text(
+                      card.Question,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    subtitle: Text(
+                      card.Answer,
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        db.deleteCard(card.id);
+                        setState(() {
+                          loadcards();
+                        });
+                      },
+                    ),
+                    onTap: () {
+                      Navigator.of(context)
+                          .push(MaterialPageRoute(
+                              builder: (context) =>
+                                  Flashcardscreen(id: card.id)))
+                          .then((_) {
+                        loadcards();
+                      });
+                    },
+                  ),
+                );
+              },
+            );
+          },
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: addflashcard,
+        backgroundColor: Colors.teal,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

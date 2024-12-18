@@ -2,17 +2,15 @@ import 'package:flashmaster/classess/Flashcard.dart';
 import 'package:flashmaster/database/flash.dart';
 import 'package:flashmaster/widgets/Textfields.dart';
 import 'package:flutter/material.dart';
+import 'dart:math';
 
 class Flashcardscreen extends StatefulWidget {
   const Flashcardscreen({
     super.key,
-    // required this.Question,
-    // required this.Answer,
     required this.id,
   });
   final int id;
-  // final String Question;
-  // final String Answer;
+
   @override
   State<Flashcardscreen> createState() => _FlashcardscreenState();
 }
@@ -26,11 +24,13 @@ class _FlashcardscreenState extends State<Flashcardscreen>
   String question = "";
   String answer = "";
   final db = FlashCardDatabase.instance;
+
   void getdata() async {
     Flashcard? card = await db.getCardById(widget.id);
-    question = card!.Question;
-    answer = card.Answer;
-    setState(() {});
+    setState(() {
+      question = card?.Question ?? "No Question Found!";
+      answer = card?.Answer ?? "No Answer Found!";
+    });
   }
 
   @override
@@ -46,80 +46,73 @@ class _FlashcardscreenState extends State<Flashcardscreen>
 
   void update() {
     showModalBottomSheet(
-        context: context,
-        builder: (context) {
-          return Center(
-            child: Form(
-                key: formkey,
-                child: Column(
-                  // mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    QuestionTextField(
-                      // hintText: "Question",
-                      initialValue: question,
-                      onSaved: (value) {
-                        question = value!;
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Please enter the question";
-                        }
-                        return null;
-                      },
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              top: 16,
+              left: 16,
+              right: 16),
+          child: Form(
+            key: formkey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                QuestionTextField(
+                  initialValue: question,
+                  onSaved: (value) => question = value!,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please enter the question";
+                    }
+                    return null;
+                  },
+                ),
+                QuestionTextField(
+                  initialValue: answer,
+                  onSaved: (value) => answer = value!,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please enter the answer";
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 12, horizontal: 20),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    QuestionTextField(
-                      initialValue: answer,
-                      // hintText: "Answer",
-                      onSaved: (value) {
-                        answer = value!;
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Please enter the Answer";
-                        }
-                        return null;
-                      },
-                    ),
-                    ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          elevation: 3,
-                          iconColor: Colors.white,
-                          backgroundColor:
-                              const Color.fromARGB(255, 18, 134, 0),
-                          // textStyle: TextStyle(color: Colors.white),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5)),
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 30),
-                        ),
-                        onPressed: () async {
-                          if (formkey.currentState!.validate()) {
-                            formkey.currentState!.save();
-                            try {
-                              await db.updateCard(Flashcard(
-                                  id: widget.id,
-                                  Question: question,
-                                  Answer: answer));
-                            } catch (e) {
-                              print(e);
-                              print(
-                                  "......................................................");
-                            }
-                          }
-                          setState(() {
-                            getdata();
-                          });
-                          Navigator.pop(context);
-                        },
-                        label: const Text(
-                          "Update",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        icon: Icon(Icons.save))
-                  ],
-                )),
-          );
-        });
+                  ),
+                  onPressed: () async {
+                    if (formkey.currentState!.validate()) {
+                      formkey.currentState!.save();
+                      await db.updateCard(Flashcard(
+                          id: widget.id, Question: question, Answer: answer));
+                      setState(() {
+                        getdata();
+                      });
+                      Navigator.pop(context);
+                    }
+                  },
+                  icon: const Icon(Icons.save),
+                  label: const Text(
+                    "Save",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -143,16 +136,11 @@ class _FlashcardscreenState extends State<Flashcardscreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Flashmaster"),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 10.0),
-            child: IconButton(
-              onPressed: update,
-              icon: const Icon(Icons.edit),
-            ),
-          )
-        ],
+        title: const Text(
+          "FlashMaster",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        elevation: 4,
       ),
       body: Center(
         child: GestureDetector(
@@ -160,9 +148,8 @@ class _FlashcardscreenState extends State<Flashcardscreen>
           child: AnimatedBuilder(
             animation: _flipAnimation,
             builder: (context, child) {
-              final angle =
-                  _flipAnimation.value * 3.14159265359; // π (180 degrees)
-              final isFrontVisible = angle < 3.14159265359 / 2;
+              final angle = _flipAnimation.value * pi; // Use π for rotation
+              final isFrontVisible = angle < pi / 2;
               return Transform(
                 alignment: Alignment.center,
                 transform: Matrix4.rotationY(angle),
@@ -170,7 +157,7 @@ class _FlashcardscreenState extends State<Flashcardscreen>
                     ? _buildCard(question, Colors.blue, Colors.white)
                     : Transform(
                         alignment: Alignment.center,
-                        transform: Matrix4.rotationY(3.14159265359),
+                        transform: Matrix4.rotationY(pi),
                         child: _buildCard(answer, Colors.green, Colors.white),
                       ),
               );
@@ -178,32 +165,40 @@ class _FlashcardscreenState extends State<Flashcardscreen>
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: update,
+        backgroundColor: Colors.teal,
+        child: const Icon(Icons.edit, color: Colors.white),
+      ),
     );
   }
 
   Widget _buildCard(String text, Color backgroundColor, Color textColor) {
     return Container(
-      width: MediaQuery.of(context).size.width * 0.8,
+      width: MediaQuery.of(context).size.width * 0.85,
       height: MediaQuery.of(context).size.height * 0.5,
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withOpacity(0.15),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       alignment: Alignment.center,
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          color: textColor,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: textColor,
+          ),
         ),
       ),
     );
