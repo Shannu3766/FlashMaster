@@ -1,3 +1,4 @@
+import 'package:flashmaster/Screens/flashcardScreen.dart';
 import 'package:flashmaster/classess/Flashcard.dart';
 import 'package:flashmaster/database/flash.dart';
 import 'package:flashmaster/widgets/Textfields.dart';
@@ -22,10 +23,6 @@ class _HomepageState extends State<Homepage> {
       return;
     }
     formkey.currentState!.save();
-    print(
-        ".......................................................................");
-    print("Question is $question");
-    print("Answer is $answer");
     try {
       int? maxId = await db.getMaxId();
       int newId = (maxId ?? 0) + 1;
@@ -35,9 +32,15 @@ class _HomepageState extends State<Homepage> {
       setState(() {
         loadcards();
       });
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text("Flashcard added successfully"),
+        duration: Duration(seconds: 2),
+      ));
     } catch (e) {
-      print("failed");
-      print(e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text("Flashcard add failed"),
+        duration: Duration(seconds: 2),
+      ));
     }
     Navigator.of(context).pop();
   }
@@ -141,14 +144,40 @@ class _HomepageState extends State<Homepage> {
                 if (!snapshot.hasData || snapshot.data!.length == 0) {
                   return const Text("No data found");
                 }
-                return ListView.builder(
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(snapshot.data![index].Question),
-                        subtitle: Text(snapshot.data![index].Answer),
-                      );
-                    });
+                return Expanded(
+                  child: ListView.builder(
+                      // separatorBuilder: (context, index) => const Divider(),
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) {
+                        return Card(
+                          margin: const EdgeInsets.all(10),
+                          elevation: 4,
+                          child: ListTile(
+                            trailing: IconButton(
+                              onPressed: () {
+                                db.deleteCard(snapshot.data![index].id);
+                                setState(() {
+                                  loadcards();
+                                });
+                              },
+                              icon: const Icon(Icons.delete),
+                              color: Colors.red,
+                            ),
+                            title: Text(snapshot.data![index].Question),
+                            subtitle: Text(snapshot.data![index].Answer),
+                            onTap: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => Flashcardscreen(
+                                        id: snapshot.data![index].id,
+                                        Question:
+                                            snapshot.data![index].Question,
+                                        Answer: snapshot.data![index].Answer,
+                                      )));
+                            },
+                          ),
+                        );
+                      }),
+                );
               }),
         ),
       ),
