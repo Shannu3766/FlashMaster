@@ -11,7 +11,7 @@ class Homepage extends StatefulWidget {
   State<Homepage> createState() => _HomepageState();
 }
 
-class _HomepageState extends State<Homepage> {
+class _HomepageState extends State<Homepage> with WidgetsBindingObserver {
   String question = "";
   String answer = "";
   final db = FlashCardDatabase.instance;
@@ -74,7 +74,7 @@ class _HomepageState extends State<Homepage> {
                       },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return "Please enter the question";
+                          return "Please enter the Answer";
                         }
                         return null;
                       },
@@ -104,13 +104,32 @@ class _HomepageState extends State<Homepage> {
   }
 
   void loadcards() {
-    _cardsFuture = db.getCards();
+    setState(() {
+      _cardsFuture = db.getCards();
+    });
+    // _cardsFuture = db.getCards();
   }
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     loadcards();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    WidgetsBinding.instance.removeObserver(this); // Remove the observer
+    super.dispose();
+    // super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      loadcards(); // Refresh data on returning to app
+    }
   }
 
   @override
@@ -144,40 +163,35 @@ class _HomepageState extends State<Homepage> {
                 if (!snapshot.hasData || snapshot.data!.length == 0) {
                   return const Text("No data found");
                 }
-                return Expanded(
-                  child: ListView.builder(
-                      // separatorBuilder: (context, index) => const Divider(),
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) {
-                        return Card(
-                          margin: const EdgeInsets.all(10),
-                          elevation: 4,
-                          child: ListTile(
-                            trailing: IconButton(
-                              onPressed: () {
-                                db.deleteCard(snapshot.data![index].id);
-                                setState(() {
-                                  loadcards();
-                                });
-                              },
-                              icon: const Icon(Icons.delete),
-                              color: Colors.red,
-                            ),
-                            title: Text(snapshot.data![index].Question),
-                            subtitle: Text(snapshot.data![index].Answer),
-                            onTap: () {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => Flashcardscreen(
-                                        id: snapshot.data![index].id,
-                                        Question:
-                                            snapshot.data![index].Question,
-                                        Answer: snapshot.data![index].Answer,
-                                      )));
+                return ListView.builder(
+                    // separatorBuilder: (context, index) => const Divider(),
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      return Card(
+                        margin: const EdgeInsets.all(10),
+                        elevation: 4,
+                        child: ListTile(
+                          trailing: IconButton(
+                            onPressed: () {
+                              db.deleteCard(snapshot.data![index].id);
+                              setState(() {
+                                loadcards();
+                              });
                             },
+                            icon: const Icon(Icons.delete),
+                            color: Colors.red,
                           ),
-                        );
-                      }),
-                );
+                          title: Text(snapshot.data![index].Question),
+                          subtitle: Text(snapshot.data![index].Answer),
+                          onTap: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) => Flashcardscreen(
+                                      id: snapshot.data![index].id,
+                                    )));
+                          },
+                        ),
+                      );
+                    });
               }),
         ),
       ),

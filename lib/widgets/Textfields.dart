@@ -19,13 +19,12 @@ class QuestionTextField extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 18.0, horizontal: 20),
       child: TextFormField(
         decoration: InputDecoration(
-          hintText: hintText,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
           ),
-          label: Text(hintText!),
+          label: Text(hintText != null ? hintText! : ""),
         ),
-        initialValue: initialValue,
+        initialValue: initialValue != null ? initialValue : "",
         validator: validator,
         onSaved: onSaved,
       ),

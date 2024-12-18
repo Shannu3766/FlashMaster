@@ -46,7 +46,20 @@ class FlashCardDatabase {
     final result = await db.rawQuery('SELECT MAX(id) as maxId FROM Flashcards');
     return result.first['maxId'] as int?;
   }
+  Future<Flashcard?> getCardById(int id) async {
+    final db = await instance.database;
+    final result = await db.query(
+      'flashcards',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
 
+    if (result.isNotEmpty) {
+      return Flashcard.fromMap(result.first);
+    } else {
+      return null;
+    }
+  }
   Future<List<Flashcard>> getCards() async {
     final db = await instance.database;
     final result = await db.query('flashcards');
