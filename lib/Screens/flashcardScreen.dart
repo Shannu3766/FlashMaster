@@ -148,6 +148,15 @@ class _FlashcardscreenState extends State<Flashcardscreen>
           "FlashMaster",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blueAccent, Colors.cyan],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         elevation: 4,
       ),
       body: Center(
@@ -162,11 +171,12 @@ class _FlashcardscreenState extends State<Flashcardscreen>
                 alignment: Alignment.center,
                 transform: Matrix4.rotationY(angle),
                 child: isFrontVisible
-                    ? _buildCard(question, Colors.blue, Colors.white)
+                    ? _buildCard(question, Colors.cyan, Colors.white)
                     : Transform(
                         alignment: Alignment.center,
                         transform: Matrix4.rotationY(pi),
-                        child: _buildCard(answer, Colors.green, Colors.white),
+                        child:
+                            _buildCard(answer, Colors.lightGreen, Colors.white),
                       ),
               );
             },
@@ -175,8 +185,8 @@ class _FlashcardscreenState extends State<Flashcardscreen>
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: update,
-        backgroundColor: Colors.teal,
-        child: const Icon(Icons.edit, color: Colors.white),
+        backgroundColor: Colors.white,
+        child: const Icon(Icons.edit, color: Colors.blue),
       ),
     );
   }
@@ -199,14 +209,27 @@ class _FlashcardscreenState extends State<Flashcardscreen>
       alignment: Alignment.center,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: textColor,
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              isFront ? "Question" : "Answer",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 25),
+            Text(
+              text,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 24,
+                // fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+          ],
         ),
       ),
     );

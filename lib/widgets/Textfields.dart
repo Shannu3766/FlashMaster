@@ -18,6 +18,9 @@ class QuestionTextField extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 18.0, horizontal: 20),
       child: TextFormField(
+        keyboardType: TextInputType.text,
+        autocorrect: true,
+        textCapitalization: TextCapitalization.sentences,
         decoration: InputDecoration(
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),

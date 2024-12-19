@@ -229,7 +229,7 @@ class _HomepageState extends State<Homepage> with WidgetsBindingObserver {
                   ),
                   elevation: 4,
                   child: ListTile(
-                    leading: const Icon(Icons.push_pin),
+                    // leading: const Icon(Icons.push_pin),
                     title: Padding(
                       padding: const EdgeInsets.symmetric(
                           vertical: 18, horizontal: 10),
