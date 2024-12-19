@@ -61,6 +61,7 @@ class _FlashcardscreenState extends State<Flashcardscreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 QuestionTextField(
+                  hintText: "Question",
                   initialValue: question,
                   onSaved: (value) => question = value!,
                   validator: (value) {
@@ -71,6 +72,7 @@ class _FlashcardscreenState extends State<Flashcardscreen>
                   },
                 ),
                 QuestionTextField(
+                  hintText: "Answer",
                   initialValue: answer,
                   onSaved: (value) => answer = value!,
                   validator: (value) {
@@ -81,30 +83,36 @@ class _FlashcardscreenState extends State<Flashcardscreen>
                   },
                 ),
                 const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.teal,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 20),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
-                  ),
-                  onPressed: () async {
-                    if (formkey.currentState!.validate()) {
-                      formkey.currentState!.save();
-                      await db.updateCard(Flashcard(
-                          id: widget.id, Question: question, Answer: answer));
-                      setState(() {
-                        getdata();
-                      });
-                      Navigator.pop(context);
-                    }
-                  },
-                  icon: const Icon(Icons.save),
-                  label: const Text(
-                    "Save",
-                    style: TextStyle(fontSize: 16),
+                    onPressed: () async {
+                      if (formkey.currentState!.validate()) {
+                        formkey.currentState!.save();
+                        await db.updateCard(Flashcard(
+                            id: widget.id, Question: question, Answer: answer));
+                        setState(() {
+                          getdata();
+                        });
+                        Navigator.pop(context);
+                      }
+                    },
+                    icon: const Icon(
+                      Icons.save,
+                      color: Colors.white,
+                    ),
+                    label: const Text(
+                      "Save",
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
                   ),
                 ),
               ],

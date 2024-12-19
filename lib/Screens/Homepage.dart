@@ -49,6 +49,7 @@ class _HomepageState extends State<Homepage> with WidgetsBindingObserver {
       int newId = (maxId ?? 0) + 1;
       await db
           .insertCard(Flashcard(id: newId, Question: question, Answer: answer));
+
       setState(() {
         loadcards();
       });
@@ -116,16 +117,48 @@ class _HomepageState extends State<Homepage> with WidgetsBindingObserver {
                     ),
                   ),
                   onPressed: saveflashcard,
-                  icon: const Icon(Icons.save),
+                  icon: const Icon(
+                    Icons.save,
+                    color: Colors.white,
+                  ),
                   label: const Text(
                     "Save",
-                    style: TextStyle(fontSize: 16),
+                    style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
                 ),
                 const SizedBox(height: 16),
               ],
             ),
           ),
+        );
+      },
+    );
+  }
+
+  void deleteflashcard(int id) async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Delete Flashcard"),
+          content:
+              const Text("Are you sure you want to delete this flashcard?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () async {
+                await db.deleteCard(id);
+                setState(() {
+                  loadcards();
+                });
+                Navigator.of(context).pop();
+              },
+              child: const Text("Delete"),
+            ),
+          ],
         );
       },
     );
@@ -196,24 +229,22 @@ class _HomepageState extends State<Homepage> with WidgetsBindingObserver {
                   ),
                   elevation: 4,
                   child: ListTile(
-                    title: Text(
-                      card.Question,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                    leading: const Icon(Icons.push_pin),
+                    title: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 18, horizontal: 10),
+                      child: Text(
+                        card.Question,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
-                    ),
-                    subtitle: Text(
-                      card.Answer,
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
-                        db.deleteCard(card.id);
-                        setState(() {
-                          loadcards();
-                        });
+                        deleteflashcard(card.id);
                       },
                     ),
                     onTap: () {
